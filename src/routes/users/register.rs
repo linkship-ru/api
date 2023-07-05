@@ -1,9 +1,11 @@
 use actix_web::{post, HttpResponse, Responder, web};
-use crate::models::user_model::User;
 use mongodb::{Database, bson::doc};
 use serde::Deserialize;
 use serde_json::json;
 use regex::Regex;
+use bcrypt::{hash, DEFAULT_COST};
+use crate::models::user_model::User;
+use crate::controllers::auth::{generate_jwt};
 
 #[derive(Debug, Deserialize)]
 pub struct Body {
@@ -49,6 +51,15 @@ pub async fn handler(body: web::Json<Body>, db: web::Data<Database>) -> impl Res
             "error_code": "USERNAME_TAKEN",
         }));
     }
+
+    let password_hash: String = hash(body.password.to_owned(), DEFAULT_COST).unwrap();
+    let token: String = generate_jwt(body.username.to_owned());
+
+    db.collection::<User>("users").insert_one(User {
+        username: body.username.to_owned(),
+        password: password_hash,
+        token: token,
+    }, None).await.unwrap();
     
     HttpResponse::Ok().json(json!({
         "success": true,
