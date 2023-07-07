@@ -31,7 +31,7 @@ pub async fn handler(body: web::Json<Body>, db: web::Data<Database>) -> impl Res
     }
     
     if body.password.trim().is_empty() {
-        return HttpResponse::BadRequest().json(json!({
+        return HttpResponse::Unauthorized().json(json!({
             "success": false,
             "error": "Invalid username or password",
             "error_code": "INVALID_CREDENTIALS",
@@ -43,7 +43,7 @@ pub async fn handler(body: web::Json<Body>, db: web::Data<Database>) -> impl Res
     }, None).await.unwrap();
 
     if user.is_none() {
-        return HttpResponse::BadRequest().json(json!({
+        return HttpResponse::Unauthorized().json(json!({
             "success": false,
             "error": "Invalid username or password",
             "error_code": "INVALID_CREDENTIALS",
